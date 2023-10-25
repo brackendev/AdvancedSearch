@@ -56,6 +56,9 @@ class AdvancedSearch extends StatefulWidget {
   ///Boolean to set autoCorrect
   final bool autoCorrect;
 
+  ///Boolean to set autoFocus
+  final bool autoFocus;
+
   ///Boolean to set whether the TextField is enabled
   final bool enabled;
 
@@ -119,6 +122,7 @@ class AdvancedSearch extends StatefulWidget {
     this.itemsShownAtStart = 10,
     this.hintText = 'Enter a name',
     this.autoCorrect = false,
+    this.autoFocus = false,
     this.enabled = true,
     this.onSubmitted,
     this.onEditingProgress,
@@ -303,6 +307,7 @@ class _AdvancedSearchState extends State<AdvancedSearch> {
               children: [
                 TextField(
                   autocorrect: widget.autoCorrect,
+                  autofocus: widget.autoFocus,
                   enabled: widget.enabled,
                   onEditingComplete: () {
                     sendSubmitResults(_textEditingController.text);
