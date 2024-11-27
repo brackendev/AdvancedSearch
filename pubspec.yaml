@@ -1,16 +1,16 @@
 name: advanced_search
 description: Text Field with Advanced Search features that gives you search results from a predefined set as per your search settings
-version: 2.2.3
+version: 2.2.4
 homepage: https://github.com/MuhammedRefaat
 repository: https://github.com/MuhammedRefaat/AdvancedSearch
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: '>=2.12.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_keyboard_visibility: ^5.0.2
+  flutter_keyboard_visibility: ^6.0.0
 
 dev_dependencies:
   flutter_test:

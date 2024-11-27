@@ -1,3 +1,8 @@
+## [2.2.4] - 18/7/2024
+- Updates for app dependencies
+- Updates for Android gradle & build tools
+- Updates for Android native libraries
+
 ## [2.2.3] - 20/4/2022
 Fix for autoListing
 

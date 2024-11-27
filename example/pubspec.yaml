@@ -4,15 +4,15 @@ description: An example to show how the package works.
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.12.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
 
-  cupertino_icons: ^0.1.3
+  cupertino_icons: ^1.0.8
   advanced_search:
-    path: /Users/muhammedrefaat/projects/advanced_search
+    path: ../
 
 dev_dependencies:
   flutter_test:
