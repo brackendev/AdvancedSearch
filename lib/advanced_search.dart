@@ -389,20 +389,29 @@ class _AdvancedSearchState extends State<AdvancedSearch> {
                         bottom: 0,
                         child: Align(
                           alignment: Alignment.centerRight,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10),
-                            child:
-                                widget.loadingWidget ??
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.grey,
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                _textEditingController.clear();
+                                widget.onSearchClear();
+                                isItemClicked = true;
+                              });
+                            },
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 10),
+                              child:
+                                  widget.loadingWidget ??
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.grey,
+                                      ),
                                     ),
                                   ),
-                                ),
+                            ),
                           ),
                         ),
                       )
