@@ -5,8 +5,8 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'CustomRoundedRectangleBorder';
 
 typedef OnTap = void Function(int index, String value);
-typedef SubmitResults = void Function(
-    String searchText, List<String> searchResults);
+typedef SubmitResults =
+    void Function(String searchText, List<String> searchResults);
 typedef SearchClear = void Function();
 typedef WidgetItems = Widget Function(String);
 
@@ -105,6 +105,12 @@ class AdvancedSearch extends StatefulWidget {
 
   final bool autoListing;
 
+  /// Whether search is currently loading
+  final bool isLoading;
+
+  /// Custom loading widget (defaults to CircularProgressIndicator)
+  final Widget? loadingWidget;
+
   const AdvancedSearch({
     required this.searchItems,
     required this.onItemTap,
@@ -140,6 +146,8 @@ class AdvancedSearch extends StatefulWidget {
     this.horizontalPadding = 10,
     this.searchItemsWidget,
     this.autoListing = false,
+    this.isLoading = false,
+    this.loadingWidget,
   });
 
   @override
@@ -212,25 +220,30 @@ class _AdvancedSearchState extends State<AdvancedSearch> {
     String textBefore = "";
     String textAfter = "";
     try {
-      String lowerCaseResult =
-          widget.caseSensitive ? result : result.toLowerCase();
+      String lowerCaseResult = widget.caseSensitive
+          ? result
+          : result.toLowerCase();
       String lowerCaseSearchText = widget.caseSensitive
           ? _textEditingController.text
           : _textEditingController.text.toLowerCase();
       textSelected = result.substring(
-          lowerCaseResult.indexOf(lowerCaseSearchText),
-          lowerCaseResult.indexOf(lowerCaseSearchText) +
-              lowerCaseSearchText.length);
-      String loserCaseTextSelected =
-          widget.caseSensitive ? textSelected : textSelected.toLowerCase();
-      textBefore =
-          result.substring(0, lowerCaseResult.indexOf(loserCaseTextSelected));
+        lowerCaseResult.indexOf(lowerCaseSearchText),
+        lowerCaseResult.indexOf(lowerCaseSearchText) +
+            lowerCaseSearchText.length,
+      );
+      String loserCaseTextSelected = widget.caseSensitive
+          ? textSelected
+          : textSelected.toLowerCase();
+      textBefore = result.substring(
+        0,
+        lowerCaseResult.indexOf(loserCaseTextSelected),
+      );
       if (lowerCaseResult.indexOf(loserCaseTextSelected) + textSelected.length <
           result.length) {
         textAfter = result.substring(
-            lowerCaseResult.indexOf(loserCaseTextSelected) +
-                textSelected.length,
-            result.length);
+          lowerCaseResult.indexOf(loserCaseTextSelected) + textSelected.length,
+          result.length,
+        );
       }
     } catch (e) {
       print(e.toString());
@@ -268,7 +281,7 @@ class _AdvancedSearchState extends State<AdvancedSearch> {
                           ? widget.unSelectedTextColor
                           : Colors.grey[400],
                     ),
-                  )
+                  ),
                 ],
               )
             : TextSpan(
@@ -295,9 +308,7 @@ class _AdvancedSearchState extends State<AdvancedSearch> {
             decoration: BoxDecoration(
               color: widget.inputTextFieldBgColor,
               borderRadius: results.length == 0 || isItemClicked
-                  ? BorderRadius.all(
-                      Radius.circular(widget.borderRadius),
-                    )
+                  ? BorderRadius.all(Radius.circular(widget.borderRadius))
                   : BorderRadius.only(
                       topLeft: Radius.circular(widget.borderRadius),
                       topRight: Radius.circular(widget.borderRadius),
@@ -324,17 +335,17 @@ class _AdvancedSearchState extends State<AdvancedSearch> {
                   controller: _textEditingController,
                   decoration: InputDecoration(
                     hintText: hintText,
-                    hintStyle: TextStyle(
-                      color: widget.hintTextColor,
-                    ),
+                    hintStyle: TextStyle(color: widget.hintTextColor),
                     contentPadding: EdgeInsets.symmetric(
-                        vertical: widget.verticalPadding,
-                        horizontal: widget.horizontalPadding),
+                      vertical: widget.verticalPadding,
+                      horizontal: widget.horizontalPadding,
+                    ),
                     disabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                          color: widget.disabledBorderColor != null
-                              ? widget.disabledBorderColor!
-                              : Colors.grey[300]!),
+                        color: widget.disabledBorderColor != null
+                            ? widget.disabledBorderColor!
+                            : Colors.grey[300]!,
+                      ),
                       borderRadius: BorderRadius.all(
                         Radius.circular(widget.borderRadius),
                       ),
@@ -351,9 +362,10 @@ class _AdvancedSearchState extends State<AdvancedSearch> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                          color: widget.focusedBorderColor != null
-                              ? widget.focusedBorderColor!
-                              : Colors.grey[300]!),
+                        color: widget.focusedBorderColor != null
+                            ? widget.focusedBorderColor!
+                            : Colors.grey[300]!,
+                      ),
                       borderRadius: results.length == 0 || isItemClicked
                           ? BorderRadius.all(
                               Radius.circular(widget.borderRadius),
@@ -364,15 +376,38 @@ class _AdvancedSearchState extends State<AdvancedSearch> {
                             ),
                     ),
                   ),
-                  style: TextStyle(
-                    fontSize: widget.fontSize,
-                  ),
+                  style: TextStyle(fontSize: widget.fontSize),
                   cursorColor: widget.cursorColor != null
                       ? widget.cursorColor
                       : Colors.grey[600],
                 ),
-                widget.clearSearchEnabled &&
-                        _textEditingController.text.length > 0
+                // Show loading indicator or clear button
+                widget.isLoading
+                    ? Positioned(
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            child:
+                                widget.loadingWidget ??
+                                SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                          ),
+                        ),
+                      )
+                    : widget.clearSearchEnabled &&
+                          _textEditingController.text.length > 0
                     ? Positioned(
                         right: 0,
                         top: 0,
@@ -405,7 +440,7 @@ class _AdvancedSearchState extends State<AdvancedSearch> {
                           ),
                         ),
                       )
-                    : Container()
+                    : Container(),
               ],
             ),
           ),
@@ -420,14 +455,14 @@ class _AdvancedSearchState extends State<AdvancedSearch> {
                     onTap: () {
                       String value = results[index];
                       widget.onItemTap(
-                          widget.searchItems.indexOf(value), value);
+                        widget.searchItems.indexOf(value),
+                        value,
+                      );
                       _textEditingController.text = value;
                       _textEditingController.selection =
                           TextSelection.fromPosition(
-                        TextPosition(
-                          offset: value.length,
-                        ),
-                      );
+                            TextPosition(offset: value.length),
+                          );
                       setState(() {
                         isItemClicked = true;
                       });
@@ -454,14 +489,18 @@ class _AdvancedSearchState extends State<AdvancedSearch> {
                                   ),
                                 ),
                                 leftSide: BorderSide(color: widget.borderColor),
-                                bottomLeftCornerSide:
-                                    BorderSide(color: widget.borderColor),
-                                rightSide:
-                                    BorderSide(color: widget.borderColor),
-                                bottomRightCornerSide:
-                                    BorderSide(color: widget.borderColor),
-                                bottomSide:
-                                    BorderSide(color: widget.borderColor),
+                                bottomLeftCornerSide: BorderSide(
+                                  color: widget.borderColor,
+                                ),
+                                rightSide: BorderSide(
+                                  color: widget.borderColor,
+                                ),
+                                bottomRightCornerSide: BorderSide(
+                                  color: widget.borderColor,
+                                ),
+                                bottomSide: BorderSide(
+                                  color: widget.borderColor,
+                                ),
                               ),
                             ),
                           ),
@@ -575,8 +614,4 @@ class _AdvancedSearchState extends State<AdvancedSearch> {
   }
 }
 
-enum SearchMode {
-  STARTING_WITH,
-  CONTAINS,
-  EXACT_MATCH,
-}
+enum SearchMode { STARTING_WITH, CONTAINS, EXACT_MATCH }
