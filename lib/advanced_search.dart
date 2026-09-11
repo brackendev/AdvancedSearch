@@ -2,11 +2,14 @@ library advanced_search;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+
 import 'CustomRoundedRectangleBorder';
 
 typedef OnTap = void Function(int index, String value);
-typedef SubmitResults =
-    void Function(String searchText, List<String> searchResults);
+typedef SubmitResults = void Function(
+  String searchText,
+  List<String> searchResults,
+);
 typedef SearchClear = void Function();
 typedef WidgetItems = Widget Function(String);
 
@@ -297,9 +300,55 @@ class _AdvancedSearchState extends State<AdvancedSearch> {
     );
   }
 
+  /// Returns the loading indicator while a search is running, the clear
+  /// button while the field has text, or null when neither applies.
+  Widget? _buildTrailingWidget() {
+    if (widget.isLoading) {
+      return InkWell(
+        onTap: () {
+          setState(() {
+            _textEditingController.clear();
+            widget.onSearchClear();
+            isItemClicked = true;
+          });
+        },
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          child:
+              widget.loadingWidget ??
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                ),
+              ),
+        ),
+      );
+    }
+
+    if (widget.clearSearchEnabled && _textEditingController.text.length > 0) {
+      return InkWell(
+        onTap: () {
+          setState(() {
+            _textEditingController.clear();
+            widget.onSearchClear();
+            isItemClicked = true;
+          });
+        },
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          child: Icon(Icons.close, size: 20, color: Colors.grey),
+        ),
+      );
+    }
+
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    bool isLtr = Directionality.of(context) == TextDirection.ltr;
     return SingleChildScrollView(
       physics: NeverScrollableScrollPhysics(),
       child: Column(
@@ -314,143 +363,77 @@ class _AdvancedSearchState extends State<AdvancedSearch> {
                       topRight: Radius.circular(widget.borderRadius),
                     ),
             ),
-            child: Stack(
-              children: [
-                TextField(
-                  autocorrect: widget.autoCorrect,
-                  autofocus: widget.autoFocus,
-                  enabled: widget.enabled,
-                  onEditingComplete: () {
-                    sendSubmitResults(_textEditingController.text);
-                    removeTextFieldFocus();
-                  },
-                  onSubmitted: (value) {
-                    removeTextFieldFocus();
-                  },
-                  onTap: () {
-                    setState(() {
-                      isItemClicked = false;
-                    });
-                  },
-                  controller: _textEditingController,
-                  decoration: InputDecoration(
-                    hintText: hintText,
-                    hintStyle: TextStyle(color: widget.hintTextColor),
-                    contentPadding: EdgeInsets.symmetric(
-                      vertical: widget.verticalPadding,
-                      horizontal: widget.horizontalPadding,
-                    ),
-                    disabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: widget.disabledBorderColor != null
-                            ? widget.disabledBorderColor!
-                            : Colors.grey[300]!,
-                      ),
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(widget.borderRadius),
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: widget.enabledBorderColor != null
-                            ? widget.enabledBorderColor!
-                            : Colors.grey[300]!,
-                      ),
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(widget.borderRadius),
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: widget.focusedBorderColor != null
-                            ? widget.focusedBorderColor!
-                            : Colors.grey[300]!,
-                      ),
-                      borderRadius: results.length == 0 || isItemClicked
-                          ? BorderRadius.all(
-                              Radius.circular(widget.borderRadius),
-                            )
-                          : BorderRadius.only(
-                              topLeft: Radius.circular(widget.borderRadius),
-                              topRight: Radius.circular(widget.borderRadius),
-                            ),
-                    ),
-                  ),
-                  style: TextStyle(fontSize: widget.fontSize),
-                  cursorColor: widget.cursorColor != null
-                      ? widget.cursorColor
-                      : Colors.grey[600],
+            child: TextField(
+              autocorrect: widget.autoCorrect,
+              autofocus: widget.autoFocus,
+              enabled: widget.enabled,
+              onEditingComplete: () {
+                sendSubmitResults(_textEditingController.text);
+                removeTextFieldFocus();
+              },
+              onSubmitted: (value) {
+                removeTextFieldFocus();
+              },
+              onTap: () {
+                setState(() {
+                  isItemClicked = false;
+                });
+              },
+              controller: _textEditingController,
+              decoration: InputDecoration(
+                hintText: hintText,
+                hintStyle: TextStyle(color: widget.hintTextColor),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: widget.verticalPadding,
+                  horizontal: widget.horizontalPadding,
                 ),
-                // Show loading indicator or clear button
-                widget.isLoading
-                    ? Positioned(
-                        right: 0,
-                        top: 0,
-                        bottom: 0,
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: InkWell(
-                            onTap: () {
-                              setState(() {
-                                _textEditingController.clear();
-                                widget.onSearchClear();
-                                isItemClicked = true;
-                              });
-                            },
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 10),
-                              child:
-                                  widget.loadingWidget ??
-                                  SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.grey,
-                                      ),
-                                    ),
-                                  ),
-                            ),
-                          ),
+                // Placing the loading indicator and clear button in the
+                // decoration reserves their width, so the editable area ends
+                // before the trailing widget instead of long input running
+                // underneath it.
+                suffixIcon: _buildTrailingWidget(),
+                suffixIconConstraints: BoxConstraints(
+                  minWidth: 0,
+                  minHeight: 0,
+                ),
+                disabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: widget.disabledBorderColor != null
+                        ? widget.disabledBorderColor!
+                        : Colors.grey[300]!,
+                  ),
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(widget.borderRadius),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: widget.enabledBorderColor != null
+                        ? widget.enabledBorderColor!
+                        : Colors.grey[300]!,
+                  ),
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(widget.borderRadius),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: widget.focusedBorderColor != null
+                        ? widget.focusedBorderColor!
+                        : Colors.grey[300]!,
+                  ),
+                  borderRadius: results.length == 0 || isItemClicked
+                      ? BorderRadius.all(Radius.circular(widget.borderRadius))
+                      : BorderRadius.only(
+                          topLeft: Radius.circular(widget.borderRadius),
+                          topRight: Radius.circular(widget.borderRadius),
                         ),
-                      )
-                    : widget.clearSearchEnabled &&
-                          _textEditingController.text.length > 0
-                    ? Positioned(
-                        right: 0,
-                        top: 0,
-                        bottom: 0,
-                        left: 0,
-                        child: Align(
-                          alignment: isLtr
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
-                          child: InkWell(
-                            onTap: () {
-                              if (_textEditingController.text.length == 0)
-                                return;
-                              setState(() {
-                                _textEditingController.clear();
-                                widget.onSearchClear();
-                                isItemClicked = true;
-                              });
-                            },
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 10),
-                              child: Icon(
-                                Icons.close,
-                                size: 20,
-                                color: _textEditingController.text.length == 0
-                                    ? Colors.grey[300]
-                                    : Colors.grey,
-                              ),
-                            ),
-                          ),
-                        ),
-                      )
-                    : Container(),
-              ],
+                ),
+              ),
+              style: TextStyle(fontSize: widget.fontSize),
+              cursorColor: widget.cursorColor != null
+                  ? widget.cursorColor
+                  : Colors.grey[600],
             ),
           ),
           if (!isItemClicked && widget.showListOfResults)
